@@ -1,44 +1,50 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="scroll-smooth">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tokyo Solo Adventure: Anime, Peaks & Retro Vibes</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        dark: {
+                            bg: '#0f172a',
+                            card: '#1e293b',
+                            text: '#f1f5f9',
+                            muted: '#94a3b8'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; background-color: #fdfbf7; color: #1f2937; }
+        body { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; }
+        
         .chart-container { position: relative; width: 100%; max-width: 600px; margin: 0 auto; height: 350px; }
         
-        /* The Sky Timeline Gradient */
+        /* Sky Timeline */
         .sky-timeline { 
-            position: absolute; 
-            left: 24px; 
-            top: 0; 
-            bottom: 0; 
-            width: 6px; 
-            border-radius: 3px;
-            z-index: 0; 
-            background: linear-gradient(to bottom, 
-                #1e3a8a 0%,    /* Night */
-                #fcd34d 25%,   /* Dawn */
-                #60a5fa 35%,   /* Day */
-                #60a5fa 65%,   /* Day */
-                #fb923c 75%,   /* Sunset */
-                #1e3a8a 85%,   /* Night */
-                #0f172a 100%   /* Deep Night */
-            );
+            position: absolute; left: 24px; top: 0; bottom: 0; width: 6px; border-radius: 3px; z-index: 0; 
+            background: linear-gradient(to bottom, #1e3a8a 0%, #fcd34d 25%, #60a5fa 35%, #60a5fa 65%, #fb923c 75%, #1e3a8a 85%, #0f172a 100%);
         }
 
         .active-tab { border-bottom: 3px solid #ef4444; color: #ef4444; font-weight: 700; background-color: #fef2f2; }
+        .dark .active-tab { background-color: #331f22; border-bottom-color: #ef4444; color: #fca5a5; }
+        
         .card-shadow { box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); }
-        .glass-panel { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(4px); }
         .details-content { max-height: 0; overflow: hidden; transition: max-height 0.4s ease-out; }
-        .details-expanded { max-height: 1000px; transition: max-height 0.6s ease-in; }
+        .details-expanded { max-height: 1200px; transition: max-height 0.6s ease-in; }
         .rotate-chevron { transform: rotate(180deg); }
         
-        /* Train Line Colors */
+        /* Train Badges */
+        .line-badge { font-family: 'Inter', sans-serif; letter-spacing: 0.05em; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
         .line-yamanote { background-color: #80c241; color: white; }
         .line-ginza { background-color: #f39700; color: white; }
         .line-hibiya { background-color: #9caeb7; color: white; }
@@ -47,27 +53,31 @@
         .line-tobu { background-color: #0f6cc3; color: white; }
         .line-keio { background-color: #dd0077; color: white; }
 
-        /* Full Screen Card */
         #comm-card-overlay { font-family: 'Noto Sans JP', sans-serif; }
     </style>
-    <!-- Chosen Palette: Warm Neutrals with Japanese Red Accents -->
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col bg-[#fdfbf7] text-gray-800 dark:bg-dark-bg dark:text-dark-text transition-colors duration-300">
 
     <!-- Navigation -->
-    <nav class="bg-white border-b border-gray-200 sticky top-0 z-50 card-shadow">
+    <nav class="bg-white dark:bg-dark-card border-b border-gray-200 dark:border-gray-700 sticky top-0 z-50 card-shadow transition-colors duration-300">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="flex justify-between h-16">
                 <div class="flex items-center">
                     <div class="flex-shrink-0 flex items-center cursor-pointer" onclick="setView('dashboard')">
-                        <span class="text-xl font-extrabold text-gray-900 tracking-tight">Tokyo<span class="text-red-500">2026</span></span>
+                        <span class="text-xl font-extrabold text-gray-900 dark:text-white tracking-tight">Tokyo<span class="text-red-500">2026</span></span>
                     </div>
                     <div class="hidden md:ml-6 md:flex md:space-x-4" id="desktop-nav">
                         <!-- Populated by JS -->
                     </div>
                 </div>
                 <div class="flex items-center space-x-3">
-                     <button onclick="toggleTools()" class="text-gray-500 hover:text-red-500 transition flex items-center bg-gray-50 px-3 py-1.5 rounded-full border border-gray-200">
+                     <!-- Dark Mode Toggle -->
+                     <button onclick="toggleDarkMode()" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 transition">
+                        <svg id="moon-icon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
+                        <svg id="sun-icon" class="w-5 h-5 hidden dark:block" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"></path></svg>
+                     </button>
+
+                     <button onclick="toggleTools()" class="text-gray-500 dark:text-gray-300 hover:text-red-500 transition flex items-center bg-gray-50 dark:bg-gray-800 px-3 py-1.5 rounded-full border border-gray-200 dark:border-gray-600">
                         <span class="mr-2 text-xs font-bold uppercase">Tools</span>
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                      </button>
@@ -76,65 +86,61 @@
             </div>
         </div>
         <!-- Mobile Nav -->
-        <div class="md:hidden flex justify-between px-4 py-2 border-t border-gray-100 bg-gray-50 overflow-x-auto" id="mobile-nav">
+        <div class="md:hidden flex justify-between px-4 py-2 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-dark-card overflow-x-auto" id="mobile-nav">
             <!-- Populated by JS -->
         </div>
     </nav>
 
     <!-- Quick Tools Modal -->
-    <div id="tools-panel" class="hidden fixed inset-0 z-[60] bg-gray-900 bg-opacity-50 flex justify-end">
-        <div class="w-80 bg-white h-full shadow-2xl p-6 overflow-y-auto transform transition-transform duration-300 translate-x-0 flex flex-col">
+    <div id="tools-panel" class="hidden fixed inset-0 z-[60] bg-gray-900 bg-opacity-50 backdrop-blur-sm flex justify-end transition-opacity">
+        <div class="w-80 bg-white dark:bg-dark-card h-full shadow-2xl p-6 overflow-y-auto transform transition-transform duration-300 translate-x-0 flex flex-col border-l dark:border-gray-700">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold text-gray-900">Travel Tools</h2>
-                <button onclick="toggleTools()" class="text-gray-400 hover:text-gray-600">
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white">Travel Tools</h2>
+                <button onclick="toggleTools()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
             
             <div class="space-y-6 flex-grow">
                 <!-- Emergency -->
-                <div class="bg-red-50 p-4 rounded-lg border border-red-100">
-                    <h3 class="font-bold text-red-800 mb-2 flex items-center">
+                <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-100 dark:border-red-900/50">
+                    <h3 class="font-bold text-red-800 dark:text-red-400 mb-2 flex items-center">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                         Emergency
                     </h3>
-                    <div class="text-sm space-y-2">
-                        <div class="flex justify-between border-b border-red-100 pb-1"><span>Police</span><span class="font-bold">110</span></div>
-                        <div class="flex justify-between border-b border-red-100 pb-1"><span>Fire/Amb</span><span class="font-bold">119</span></div>
-                        <div class="flex justify-between"><span>SG Embassy</span><span class="font-bold">+81-3-3586-9111</span></div>
+                    <div class="text-sm space-y-2 text-gray-700 dark:text-gray-300">
+                        <div class="flex justify-between border-b border-red-100 dark:border-red-800/30 pb-1"><span>Police</span><span class="font-bold text-red-600 dark:text-red-400">110</span></div>
+                        <div class="flex justify-between border-b border-red-100 dark:border-red-800/30 pb-1"><span>Fire/Amb</span><span class="font-bold text-red-600 dark:text-red-400">119</span></div>
+                        <div class="flex justify-between"><span>SG Embassy</span><span class="font-bold text-red-600 dark:text-red-400">+81-3-3586-9111</span></div>
                     </div>
                 </div>
 
                 <!-- Comm Cards -->
                 <div>
-                    <h3 class="font-bold text-gray-900 mb-2 flex items-center">
+                    <h3 class="font-bold text-gray-900 dark:text-white mb-2 flex items-center">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-                        Show to Locals
+                        Flash Cards (Show Locals)
                     </h3>
-                    <p class="text-xs text-gray-500 mb-3">Tap to show full screen card</p>
+                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Tap to show full screen</p>
                     <div class="space-y-2" id="comm-cards-container">
                         <!-- Populated by JS -->
                     </div>
                 </div>
             </div>
-            
-            <div class="mt-auto text-center text-xs text-gray-400">
-                Tap card to close overlay
-            </div>
         </div>
     </div>
 
     <!-- Communication Card Overlay -->
-    <div id="comm-card-overlay" class="hidden fixed inset-0 z-[100] bg-white flex flex-col items-center justify-center p-6 text-center cursor-pointer" onclick="hideCard()">
+    <div id="comm-card-overlay" class="hidden fixed inset-0 z-[100] bg-white dark:bg-gray-900 flex flex-col items-center justify-center p-6 text-center cursor-pointer transition-colors duration-300" onclick="hideCard()">
         <div class="mb-8">
-            <span class="text-sm font-bold text-gray-400 uppercase tracking-widest border border-gray-300 px-3 py-1 rounded-full">English</span>
-            <h2 id="card-en" class="text-2xl font-bold text-gray-800 mt-4">Where is the train station?</h2>
+            <span class="text-sm font-bold text-gray-400 uppercase tracking-widest border border-gray-300 dark:border-gray-600 px-3 py-1 rounded-full">English</span>
+            <h2 id="card-en" class="text-2xl font-bold text-gray-800 dark:text-white mt-4">Where is the train station?</h2>
         </div>
-        <div class="w-full h-px bg-gray-200 mb-8"></div>
+        <div class="w-full h-px bg-gray-200 dark:bg-gray-700 mb-8"></div>
         <div>
              <span class="text-sm font-bold text-white bg-red-600 px-3 py-1 rounded-full uppercase tracking-widest">Japanese</span>
-             <h1 id="card-jp" class="text-5xl sm:text-6xl font-black text-black mt-6 leading-tight">駅はどこですか？</h1>
-             <p id="card-kana" class="text-xl text-gray-500 mt-4 font-medium">Eki wa doko desu ka?</p>
+             <h1 id="card-jp" class="text-5xl sm:text-6xl font-black text-black dark:text-white mt-6 leading-tight break-words">駅はどこですか？</h1>
+             <p id="card-kana" class="text-xl text-gray-500 dark:text-gray-400 mt-4 font-medium">Eki wa doko desu ka?</p>
         </div>
         <div class="absolute bottom-10 text-gray-400 text-sm animate-pulse">Tap anywhere to close</div>
     </div>
@@ -148,6 +154,11 @@
     <footer class="bg-gray-800 text-white py-8 mt-auto border-t border-gray-700">
         <div class="max-w-7xl mx-auto px-4 text-center">
             <p class="text-sm text-gray-400">Tokyo Solo Adventure Planner • Feb 2026</p>
+            <div class="flex justify-center space-x-4 mt-4 text-xs text-gray-500">
+                <span>Dark Mode Ready</span>
+                <span>•</span>
+                <span>Offline Capable Layout</span>
+            </div>
         </div>
     </footer>
 
@@ -163,17 +174,19 @@
             },
             budget: {
                 breakdown: [
-                    { category: "Food & Dining", amount: 45000, color: "#f87171" }, // Red-400
-                    { category: "Transport", amount: 12000, color: "#fbbf24" }, // Amber-400
-                    { category: "Attractions", amount: 13000, color: "#60a5fa" }, // Blue-400
-                    { category: "Shopping/Misc", amount: 20000, color: "#34d399" }  // Emerald-400
+                    { category: "Food & Dining", amount: 45000, color: "#f87171" }, 
+                    { category: "Transport", amount: 12000, color: "#fbbf24" }, 
+                    { category: "Attractions", amount: 13000, color: "#60a5fa" }, 
+                    { category: "Shopping/Misc", amount: 20000, color: "#34d399" } 
                 ],
                 totalEstimated: 90000,
                 surplus: 22000
             },
             commCards: [
+                { en: "Take me to Tosei Hotel Ueno", jp: "トーセイホテルココネ上野御徒町までお願いします。", kana: "Tosei Hotel Cocone Ueno Okachimachi made onegaishimasu." },
+                { en: "Take me to Narita Airport", jp: "成田空港までお願いします。", kana: "Narita Kuko made onegaishimasu." },
                 { en: "Where is the ticket gate?", jp: "改札口はどこですか？", kana: "Kaisatsuguchi wa doko desu ka?" },
-                { en: "Does this train go to [Ueno]?", jp: "この電車は[上野]に行きますか？", kana: "Kono densha wa [Ueno] ni ikimasu ka?" },
+                { en: "Does this go to Ueno?", jp: "これは上野に行きますか？", kana: "Kore wa Ueno ni ikimasu ka?" },
                 { en: "I have a reservation.", jp: "予約しています。", kana: "Yoyaku shite imasu." },
                 { en: "Check, please.", jp: "お会計お願いします。", kana: "O-kaikei onegai shimasu." },
                 { en: "Where is the bathroom?", jp: "トイレはどこですか？", kana: "Toire wa doko desu ka?" },
@@ -209,6 +222,7 @@
                             location_overview: "Modern business hotel in Ueno Okachimachi. Excellent access to multiple subway lines and the Keisei Skyliner station.", 
                             transport_detail: "From Keisei Ueno Station, it is a 5-8 minute walk. Exit the station, walk south towards Okachimachi alongside Ueno Park/Ameyoko.",
                             station_exit: "Keisei Ueno Main Exit",
+                            taxi_card_index: 0, // Links to "Take me to Tosei Hotel"
                             pro_tips: "Ask for a high floor room for less street noise. The hotel has a coin laundry if needed.",
                             what_to_expect: "Compact room (standard Tokyo style). Check-in is usually fast.",
                             type: "logistics",
@@ -242,7 +256,7 @@
                 {
                     day: "Day 2",
                     date: "Mon, Feb 16",
-                    title: "Mountain Peak to Cocktail Chic",
+                    title: "Mountain Peak & Mixology",
                     focus: "Nature & High-end Vibes",
                     budget: 11500,
                     sunrise: "06:27",
@@ -300,7 +314,8 @@
                             title: "Bar Benfiddich", 
                             location_overview: "Ranked among the World's 50 Best Bars. No menu mixology.", 
                             transport_detail: "Located in Nishi-Shinjuku, 9th floor of a nondescript building. 5 min walk from Metro Gov Bldg.",
-                            pro_tips: "There is no menu. Tell Hiroyasu-san a base spirit (e.g., Gin) and a flavor profile (e.g., herbal, citrus). Watch him grind spices with a mortar and pestle.",
+                            taxi_card_index: 4, // "I have a reservation"
+                            pro_tips: "There is no menu. Tell Hiroyasu-san a base spirit (e.g., Gin) and a flavor profile (e.g., herbal, citrus).",
                             what_to_expect: "Dark, moody, apothecary vibes. Quiet and sophisticated.",
                             cost: "¥8,000", 
                             type: "food",
@@ -347,6 +362,7 @@
                             transport_detail: "Take Tobu Skytree line from Kasukabe directly to Tokyo Skytree Station. Go to 'Solamachi Dining Skytree View' elevators.",
                             transport_badge: { name: "Tobu Skytree", class: "line-tobu" },
                             station_exit: "Skytree Station (Direct)",
+                            taxi_card_index: 4, // Reservation
                             pro_tips: "The 'Lunch Set' (approx ¥3,500-4,500) includes salad, kimchi, rice, soup, dessert, and coffee. It's incredible value.",
                             what_to_expect: "Impeccable service, white tablecloths, grilling your own high-quality meat.",
                             cost: "¥4,500", 
@@ -435,7 +451,7 @@
                 {
                     day: "Day 5",
                     date: "Thu, Feb 19",
-                    title: "Coffee, Shrines & Departure",
+                    title: "Coffee & Departure",
                     focus: "Relaxed Morning, Easy Transit",
                     budget: 5500,
                     sunrise: "06:24",
@@ -493,6 +509,7 @@
                             transport_detail: "Pick up bags from hotel. Walk to Keisei Ueno Station. Board Skyliner. Arrive Narita ~45 mins later.",
                             transport_badge: { name: "Skyliner", class: "line-skyliner" },
                             station_exit: "Keisei Ueno Entrance",
+                            taxi_card_index: 1, // "Take me to Narita Airport"
                             pro_tips: "There are vending machines on the Skyliner platform. Grab a final Boss Coffee.",
                             what_to_expect: "Smooth, quiet ride. Sadness that the trip is over.",
                             type: "transport",
@@ -518,6 +535,12 @@
         // --- Core Functions ---
 
         function init() {
+            // Dark mode check
+            if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+                document.documentElement.classList.add('dark');
+            } else {
+                document.documentElement.classList.remove('dark');
+            }
             renderNav();
             renderTools();
             renderView();
@@ -528,6 +551,16 @@
                 tripData.checklist.forEach(item => {
                     if (parsed[item.id]) item.done = true;
                 });
+            }
+        }
+
+        function toggleDarkMode() {
+            if (document.documentElement.classList.contains('dark')) {
+                document.documentElement.classList.remove('dark');
+                localStorage.theme = 'light';
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.theme = 'dark';
             }
         }
 
@@ -549,7 +582,9 @@
             document.getElementById('card-jp').textContent = card.jp;
             document.getElementById('card-kana').textContent = card.kana;
             document.getElementById('comm-card-overlay').classList.remove('hidden');
-            toggleTools(); // Close sidebar
+            // Check if tools panel is open, if so close it
+            const tools = document.getElementById('tools-panel');
+            if(!tools.classList.contains('hidden')) toggleTools();
         }
 
         function hideCard() {
@@ -568,13 +603,13 @@
             const mobileContainer = document.getElementById('mobile-nav');
             
             desktopContainer.innerHTML = views.map(v => `
-                <button onclick="setView('${v.id}')" class="${currentView === v.id ? 'bg-red-50 text-red-700' : 'text-gray-500 hover:text-gray-900'} px-3 py-2 rounded-md text-sm font-medium transition duration-150">
+                <button onclick="setView('${v.id}')" class="${currentView === v.id ? 'bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-400' : 'text-gray-500 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white'} px-3 py-2 rounded-md text-sm font-medium transition duration-150">
                     ${v.label}
                 </button>
             `).join('');
 
             mobileContainer.innerHTML = views.map(v => `
-                <button onclick="setView('${v.id}')" class="${currentView === v.id ? 'text-red-600 font-bold border-b-2 border-red-600' : 'text-gray-500'} flex-1 text-center text-xs uppercase tracking-wide px-2 py-3">
+                <button onclick="setView('${v.id}')" class="${currentView === v.id ? 'text-red-600 dark:text-red-400 font-bold border-b-2 border-red-600 dark:border-red-400' : 'text-gray-500 dark:text-gray-400'} flex-1 text-center text-xs uppercase tracking-wide px-2 py-3">
                     ${v.label}
                 </button>
             `).join('');
@@ -583,9 +618,9 @@
         function renderTools() {
             const container = document.getElementById('comm-cards-container');
             container.innerHTML = tripData.commCards.map((card, idx) => `
-                <div onclick="showCard(${idx})" class="p-3 bg-gray-50 hover:bg-red-50 border border-gray-100 rounded-lg cursor-pointer transition flex justify-between items-center group">
-                    <span class="text-sm text-gray-700 font-medium">${card.en}</span>
-                    <span class="text-xs text-gray-400 group-hover:text-red-500">Show &rarr;</span>
+                <div onclick="showCard(${idx})" class="p-3 bg-gray-50 dark:bg-gray-800 hover:bg-red-50 dark:hover:bg-red-900/30 border border-gray-100 dark:border-gray-700 rounded-lg cursor-pointer transition flex justify-between items-center group">
+                    <span class="text-sm text-gray-700 dark:text-gray-300 font-medium truncate mr-2">${card.en}</span>
+                    <span class="text-xs text-gray-400 group-hover:text-red-500 dark:group-hover:text-red-400 shrink-0">Show &rarr;</span>
                 </div>
             `).join('');
         }
@@ -606,30 +641,30 @@
             container.innerHTML = `
                 <div class="mb-8 flex flex-col md:flex-row md:items-end justify-between">
                     <div>
-                        <h1 class="text-4xl font-extrabold text-gray-900 mb-2">Tokyo <span class="text-red-500">Adventure</span></h1>
-                        <p class="text-gray-600">5 Days • Solo • Specific Interests</p>
+                        <h1 class="text-4xl font-extrabold text-gray-900 dark:text-white mb-2">Tokyo <span class="text-red-500">Adventure</span></h1>
+                        <p class="text-gray-600 dark:text-gray-400">5 Days • Solo • Specific Interests</p>
                     </div>
-                    <div class="mt-4 md:mt-0 bg-white px-4 py-2 rounded-lg card-shadow text-sm text-gray-600 border border-gray-100 flex items-center">
+                    <div class="mt-4 md:mt-0 bg-white dark:bg-dark-card px-4 py-2 rounded-lg card-shadow text-sm text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-700 flex items-center">
                         <span class="mr-2">⛅ Feb Forecast:</span>
-                        <span class="font-bold text-gray-900">Cold & Crisp (2°C - 10°C)</span>
+                        <span class="font-bold text-gray-900 dark:text-white">Cold & Crisp (2°C - 10°C)</span>
                     </div>
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="bg-white rounded-xl p-6 card-shadow border-t-4 border-red-500 relative overflow-hidden">
-                        <div class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Total Budget</div>
-                        <div class="text-3xl font-extrabold text-gray-900">¥${tripData.budget.totalEstimated.toLocaleString()}</div>
-                        <div class="text-xs font-medium text-green-600 mt-2 bg-green-50 inline-block px-2 py-1 rounded">Safe Margin: ¥${tripData.budget.surplus.toLocaleString()}</div>
+                    <div class="bg-white dark:bg-dark-card rounded-xl p-6 card-shadow border-t-4 border-red-500 relative overflow-hidden">
+                        <div class="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Total Budget</div>
+                        <div class="text-3xl font-extrabold text-gray-900 dark:text-white">¥${tripData.budget.totalEstimated.toLocaleString()}</div>
+                        <div class="text-xs font-medium text-green-600 dark:text-green-400 mt-2 bg-green-50 dark:bg-green-900/20 inline-block px-2 py-1 rounded">Safe Margin: ¥${tripData.budget.surplus.toLocaleString()}</div>
                     </div>
-                    <div class="bg-white rounded-xl p-6 card-shadow border-t-4 border-amber-400">
-                         <div class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Trip Theme</div>
-                        <div class="text-xl font-bold text-gray-900">Anime, Peaks & Retro</div>
-                         <div class="mt-2 text-xs text-gray-500">Focus on unique solo experiences.</div>
+                    <div class="bg-white dark:bg-dark-card rounded-xl p-6 card-shadow border-t-4 border-amber-400">
+                         <div class="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Trip Theme</div>
+                        <div class="text-xl font-bold text-gray-900 dark:text-white">Anime, Peaks & Retro</div>
+                         <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">Focus on unique solo experiences.</div>
                     </div>
-                     <div class="bg-white rounded-xl p-6 card-shadow border-t-4 border-blue-400">
-                         <div class="text-gray-500 text-xs font-bold uppercase tracking-wider mb-1">Base Camp</div>
-                        <div class="text-lg font-bold text-gray-900 truncate">Ueno Okachimachi</div>
-                        <div class="mt-2 flex items-center text-xs text-blue-600">
+                     <div class="bg-white dark:bg-dark-card rounded-xl p-6 card-shadow border-t-4 border-blue-400">
+                         <div class="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Base Camp</div>
+                        <div class="text-lg font-bold text-gray-900 dark:text-white truncate">Ueno Okachimachi</div>
+                        <div class="mt-2 flex items-center text-xs text-blue-600 dark:text-blue-400">
                             <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
                             Tosei Hotel Cocone
                         </div>
@@ -653,63 +688,63 @@
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
-                    <div class="lg:col-span-2 bg-white rounded-xl p-6 card-shadow">
-                        <h2 class="text-xl font-bold text-gray-900 mb-6 flex items-center">
-                            <span class="bg-red-100 text-red-600 p-2 rounded-lg mr-3">
+                    <div class="lg:col-span-2 bg-white dark:bg-dark-card rounded-xl p-6 card-shadow">
+                        <h2 class="text-xl font-bold text-gray-900 dark:text-white mb-6 flex items-center">
+                            <span class="bg-red-100 dark:bg-red-900/30 text-red-600 dark:text-red-400 p-2 rounded-lg mr-3">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11.049 2.927c.3-.921 1.603-.921 1.902 0l1.519 4.674a1 1 0 00.95.69h4.915c.969 0 1.371 1.24.588 1.81l-3.976 2.888a1 1 0 00-.363 1.118l1.518 4.674c.3.922-.755 1.688-1.538 1.118l-3.976-2.888a1 1 0 00-1.176 0l-3.976 2.888c-.783.57-1.838-.197-1.538-1.118l1.518-4.674a1 1 0 00-.363-1.118l-3.976-2.888c-.784-.57-.38-1.81.588-1.81h4.914a1 1 0 00.951-.69l1.519-4.674z"></path></svg>
                             </span>
                             Experience Highlights
                         </h2>
                         <div class="space-y-4">
-                            <div class="group flex items-center p-4 bg-gray-50 rounded-lg border border-transparent hover:border-gray-200 hover:bg-white transition-all cursor-pointer" onclick="setActiveDay(1); setView('itinerary')">
-                                <div class="h-16 w-16 rounded-lg bg-indigo-100 flex-shrink-0 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🍸</div>
+                            <div class="group flex items-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-transparent hover:border-gray-200 dark:hover:border-gray-600 hover:bg-white dark:hover:bg-gray-700 transition-all cursor-pointer" onclick="setActiveDay(1); setView('itinerary')">
+                                <div class="h-16 w-16 rounded-lg bg-indigo-100 dark:bg-indigo-900/30 flex-shrink-0 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🍸</div>
                                 <div class="ml-4 flex-grow">
-                                    <h3 class="font-bold text-gray-900">Bar Benfiddich</h3>
-                                    <p class="text-sm text-gray-500">Farm-to-glass mixology in Shinjuku.</p>
+                                    <h3 class="font-bold text-gray-900 dark:text-white">Bar Benfiddich</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Farm-to-glass mixology in Shinjuku.</p>
                                 </div>
-                                <div class="text-xs font-bold text-indigo-600 bg-indigo-50 px-2 py-1 rounded">Day 2</div>
+                                <div class="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-1 rounded">Day 2</div>
                             </div>
-                            <div class="group flex items-center p-4 bg-gray-50 rounded-lg border border-transparent hover:border-gray-200 hover:bg-white transition-all cursor-pointer" onclick="setActiveDay(1); setView('itinerary')">
-                                <div class="h-16 w-16 rounded-lg bg-green-100 flex-shrink-0 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">⛰️</div>
+                            <div class="group flex items-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-transparent hover:border-gray-200 dark:hover:border-gray-600 hover:bg-white dark:hover:bg-gray-700 transition-all cursor-pointer" onclick="setActiveDay(1); setView('itinerary')">
+                                <div class="h-16 w-16 rounded-lg bg-green-100 dark:bg-green-900/30 flex-shrink-0 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">⛰️</div>
                                 <div class="ml-4 flex-grow">
-                                    <h3 class="font-bold text-gray-900">Mount Takao</h3>
-                                    <p class="text-sm text-gray-500">Sacred mountain hike with Fuji views.</p>
+                                    <h3 class="font-bold text-gray-900 dark:text-white">Mount Takao</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Sacred mountain hike with Fuji views.</p>
                                 </div>
-                                <div class="text-xs font-bold text-green-600 bg-green-50 px-2 py-1 rounded">Day 2</div>
+                                <div class="text-xs font-bold text-green-600 dark:text-green-400 bg-green-50 dark:bg-green-900/20 px-2 py-1 rounded">Day 2</div>
                             </div>
-                            <div class="group flex items-center p-4 bg-gray-50 rounded-lg border border-transparent hover:border-gray-200 hover:bg-white transition-all cursor-pointer" onclick="setActiveDay(2); setView('itinerary')">
-                                <div class="h-16 w-16 rounded-lg bg-yellow-100 flex-shrink-0 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🖍️</div>
+                            <div class="group flex items-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-transparent hover:border-gray-200 dark:hover:border-gray-600 hover:bg-white dark:hover:bg-gray-700 transition-all cursor-pointer" onclick="setActiveDay(2); setView('itinerary')">
+                                <div class="h-16 w-16 rounded-lg bg-yellow-100 dark:bg-yellow-900/30 flex-shrink-0 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🖍️</div>
                                 <div class="ml-4 flex-grow">
-                                    <h3 class="font-bold text-gray-900">Puratto Kasukabe</h3>
-                                    <p class="text-sm text-gray-500">Crayon Shin-chan pilgrimage.</p>
+                                    <h3 class="font-bold text-gray-900 dark:text-white">Puratto Kasukabe</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">Crayon Shin-chan pilgrimage.</p>
                                 </div>
-                                <div class="text-xs font-bold text-yellow-600 bg-yellow-50 px-2 py-1 rounded">Day 3</div>
+                                <div class="text-xs font-bold text-yellow-600 dark:text-yellow-400 bg-yellow-50 dark:bg-yellow-900/20 px-2 py-1 rounded">Day 3</div>
                             </div>
-                             <div class="group flex items-center p-4 bg-gray-50 rounded-lg border border-transparent hover:border-gray-200 hover:bg-white transition-all cursor-pointer" onclick="setActiveDay(3); setView('itinerary')">
-                                <div class="h-16 w-16 rounded-lg bg-blue-100 flex-shrink-0 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🌋</div>
+                             <div class="group flex items-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg border border-transparent hover:border-gray-200 dark:hover:border-gray-600 hover:bg-white dark:hover:bg-gray-700 transition-all cursor-pointer" onclick="setActiveDay(3); setView('itinerary')">
+                                <div class="h-16 w-16 rounded-lg bg-blue-100 dark:bg-blue-900/30 flex-shrink-0 flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">🌋</div>
                                 <div class="ml-4 flex-grow">
-                                    <h3 class="font-bold text-gray-900">Fantasy Springs</h3>
-                                    <p class="text-sm text-gray-500">New port at Tokyo DisneySea.</p>
+                                    <h3 class="font-bold text-gray-900 dark:text-white">Fantasy Springs</h3>
+                                    <p class="text-sm text-gray-500 dark:text-gray-400">New port at Tokyo DisneySea.</p>
                                 </div>
-                                <div class="text-xs font-bold text-blue-600 bg-blue-50 px-2 py-1 rounded">Day 4</div>
+                                <div class="text-xs font-bold text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20 px-2 py-1 rounded">Day 4</div>
                             </div>
                         </div>
                     </div>
 
-                    <div class="bg-white rounded-xl p-6 card-shadow flex flex-col">
-                        <h2 class="text-lg font-bold text-gray-900 mb-4">Pending Tasks</h2>
+                    <div class="bg-white dark:bg-dark-card rounded-xl p-6 card-shadow flex flex-col">
+                        <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Pending Tasks</h2>
                          <div class="flex-grow space-y-3">
                             ${tripData.checklist.filter(i => !i.done).slice(0, 5).map(item => `
                                 <div class="flex items-start">
-                                    <div class="flex-shrink-0 h-5 w-5 flex items-center justify-center rounded border border-gray-300 bg-white mt-0.5">
+                                    <div class="flex-shrink-0 h-5 w-5 flex items-center justify-center rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 mt-0.5">
                                         <div class="h-2.5 w-2.5 rounded-sm bg-transparent"></div>
                                     </div>
-                                    <span class="ml-3 text-sm text-gray-700">${item.text}</span>
+                                    <span class="ml-3 text-sm text-gray-700 dark:text-gray-300">${item.text}</span>
                                 </div>
                             `).join('')}
                             ${tripData.checklist.filter(i => !i.done).length === 0 ? '<p class="text-sm text-gray-500 italic">All set! You are ready to go.</p>' : ''}
                         </div>
-                        <button onclick="setView('checklist')" class="mt-6 w-full py-2 bg-gray-50 hover:bg-gray-100 text-gray-600 text-sm font-bold rounded-lg transition border border-gray-200">
+                        <button onclick="setView('checklist')" class="mt-6 w-full py-2 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-bold rounded-lg transition border border-gray-200 dark:border-gray-600">
                             Open Checklist
                         </button>
                     </div>
@@ -719,7 +754,7 @@
 
         function renderItinerary(container) {
             const tabsHtml = tripData.itinerary.map((day, index) => `
-                <button onclick="setActiveDay(${index})" class="flex-shrink-0 w-24 sm:w-auto flex-1 py-4 text-center border-b-2 text-sm font-medium transition-colors duration-200 ${index === activeDayIndex ? 'active-tab' : 'border-transparent text-gray-500 hover:text-gray-700 bg-white'}">
+                <button onclick="setActiveDay(${index})" class="flex-shrink-0 w-24 sm:w-auto flex-1 py-4 text-center border-b-2 text-sm font-medium transition-colors duration-200 ${index === activeDayIndex ? 'active-tab' : 'border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white bg-white dark:bg-dark-card'}">
                     <div class="font-bold text-base mb-1">${day.day}</div>
                     <div class="text-xs opacity-80">${day.date.split(',')[0]}</div>
                 </button>
@@ -733,12 +768,12 @@
 
             const eventsHtml = filteredEvents.length > 0 ? filteredEvents.map((event, idx) => {
                 let icon = '📍';
-                let colorClass = 'bg-gray-100 text-gray-600';
-                if(event.type === 'food') { icon = '🍜'; colorClass = 'bg-orange-100 text-orange-600'; }
-                if(event.type === 'transport') { icon = '🚇'; colorClass = 'bg-blue-100 text-blue-600'; }
-                if(event.type === 'shopping') { icon = '🛍️'; colorClass = 'bg-emerald-100 text-emerald-600'; }
-                if(event.type === 'logistics') { icon = '🏨'; colorClass = 'bg-purple-100 text-purple-600'; }
-                if(event.type === 'activity') { icon = '📷'; colorClass = 'bg-pink-100 text-pink-600'; }
+                let colorClass = 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-300';
+                if(event.type === 'food') { icon = '🍜'; colorClass = 'bg-orange-100 dark:bg-orange-900/30 text-orange-600 dark:text-orange-400'; }
+                if(event.type === 'transport') { icon = '🚇'; colorClass = 'bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400'; }
+                if(event.type === 'shopping') { icon = '🛍️'; colorClass = 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400'; }
+                if(event.type === 'logistics') { icon = '🏨'; colorClass = 'bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400'; }
+                if(event.type === 'activity') { icon = '📷'; colorClass = 'bg-pink-100 dark:bg-pink-900/30 text-pink-600 dark:text-pink-400'; }
 
                 const eventTimeVal = parseInt(event.time.replace(':', ''));
                 const sunriseVal = parseInt(activeDay.sunrise.replace(':', ''));
@@ -755,11 +790,11 @@
                     <div class="sky-timeline"></div>
                     
                     <div class="absolute left-6 sm:left-10 top-6 transform -translate-x-1/2 z-10 flex flex-col items-center">
-                        <div class="h-3 w-3 rounded-full border-2 border-white shadow-sm ${event.title.includes('RESERVATION') ? 'bg-red-500 animate-pulse' : 'bg-white'}"></div>
+                        <div class="h-3 w-3 rounded-full border-2 border-white dark:border-dark-bg shadow-sm ${event.title.includes('RESERVATION') ? 'bg-red-500 animate-pulse' : 'bg-white dark:bg-gray-600'}"></div>
                         <div class="mt-1 text-[10px] leading-none text-gray-400 select-none">${timeIcon}</div>
                     </div>
                     
-                    <div class="bg-white rounded-xl card-shadow border border-gray-100 hover:border-red-200 transition-all overflow-hidden">
+                    <div class="bg-white dark:bg-dark-card rounded-xl card-shadow border border-gray-100 dark:border-gray-700 hover:border-red-200 dark:hover:border-red-900 transition-all overflow-hidden">
                         <div class="p-4 sm:p-5 cursor-pointer" onclick="toggleDetails('evt-${idx}')">
                             <div class="flex items-start">
                                 <div class="flex-shrink-0 mr-4">
@@ -769,15 +804,15 @@
                                 </div>
                                 <div class="flex-grow">
                                     <div class="flex flex-wrap justify-between items-start">
-                                        <h3 class="text-lg font-bold text-gray-900 leading-tight mr-2">${event.title}</h3>
+                                        <h3 class="text-lg font-bold text-gray-900 dark:text-white leading-tight mr-2">${event.title}</h3>
                                         <div class="flex items-center mt-1 sm:mt-0 space-x-2">
-                                            ${event.transport_badge ? `<span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${event.transport_badge.class}">${event.transport_badge.name}</span>` : ''}
-                                            <span class="text-sm font-mono font-bold text-gray-500 bg-gray-50 px-2 py-1 rounded border border-gray-200">${event.time}</span>
+                                            ${event.transport_badge ? `<span class="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full shadow-sm line-badge ${event.transport_badge.class}">${event.transport_badge.name}</span>` : ''}
+                                            <span class="text-sm font-mono font-bold text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 px-2 py-1 rounded border border-gray-200 dark:border-gray-700">${event.time}</span>
                                         </div>
                                     </div>
                                     
                                     ${event.station_exit ? `
-                                        <div class="mt-1 flex items-center text-xs font-bold text-gray-500">
+                                        <div class="mt-1 flex items-center text-xs font-bold text-gray-500 dark:text-gray-400">
                                             <svg class="w-3 h-3 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
                                             Exit: ${event.station_exit}
                                         </div>
@@ -785,57 +820,62 @@
                                     
                                     <div class="flex items-center mt-2 space-x-2">
                                          ${event.indoor ? 
-                                            `<span class="text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">Indoor</span>` : 
-                                            `<span class="text-[10px] font-bold uppercase tracking-wider bg-blue-50 text-blue-600 px-2 py-0.5 rounded-full">Outdoor</span>`
+                                            `<span class="text-[10px] font-bold uppercase tracking-wider bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 px-2 py-0.5 rounded-full">Indoor</span>` : 
+                                            `<span class="text-[10px] font-bold uppercase tracking-wider bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400 px-2 py-0.5 rounded-full">Outdoor</span>`
                                          }
-                                         ${event.cost ? `<span class="text-[10px] font-bold uppercase tracking-wider bg-green-50 text-green-700 px-2 py-0.5 rounded-full">${event.cost}</span>` : ''}
+                                         ${event.cost ? `<span class="text-[10px] font-bold uppercase tracking-wider bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full">${event.cost}</span>` : ''}
                                     </div>
                                 </div>
                                 <div class="ml-2 flex-shrink-0 self-center">
                                     <svg id="chevron-evt-${idx}" class="w-5 h-5 text-gray-400 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                                 </div>
                             </div>
-                             <p class="text-sm text-gray-600 mt-3 line-clamp-2">${event.location_overview}</p>
+                             <p class="text-sm text-gray-600 dark:text-gray-400 mt-3 line-clamp-2">${event.location_overview}</p>
                         </div>
 
-                        <div id="details-evt-${idx}" class="details-content bg-gray-50 border-t border-gray-100">
+                        <div id="details-evt-${idx}" class="details-content bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700">
                             <div class="p-5 space-y-4">
-                                <div class="bg-white p-3 rounded-lg border border-gray-200 shadow-sm">
-                                    <h4 class="text-xs font-bold text-blue-500 uppercase tracking-wide mb-1 flex items-center">
+                                <div class="bg-white dark:bg-dark-card p-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
+                                    <h4 class="text-xs font-bold text-blue-500 dark:text-blue-400 uppercase tracking-wide mb-1 flex items-center">
                                         <svg class="w-3 h-3 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
                                         Navigating There
                                     </h4>
-                                    <p class="text-sm text-gray-700">${event.transport_detail}</p>
+                                    <p class="text-sm text-gray-700 dark:text-gray-300">${event.transport_detail}</p>
                                     
                                     ${event.train_strategy ? `
-                                    <div class="mt-3 pt-3 border-t border-gray-100">
+                                    <div class="mt-3 pt-3 border-t border-gray-100 dark:border-gray-700">
                                         <h5 class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-1">Transit Strategy</h5>
-                                        <p class="text-xs text-gray-600 italic bg-blue-50 p-2 rounded border border-blue-100">${event.train_strategy}</p>
+                                        <p class="text-xs text-gray-600 dark:text-gray-400 italic bg-blue-50 dark:bg-blue-900/10 p-2 rounded border border-blue-100 dark:border-blue-900/30">${event.train_strategy}</p>
                                     </div>
                                     ` : ''}
                                 </div>
 
                                 ${event.pro_tips ? `
                                 <div class="flex items-start">
-                                    <span class="flex-shrink-0 h-5 w-5 rounded-full bg-amber-100 text-amber-600 flex items-center justify-center text-xs font-bold mr-2">!</span>
+                                    <span class="flex-shrink-0 h-5 w-5 rounded-full bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 flex items-center justify-center text-xs font-bold mr-2">!</span>
                                     <div>
-                                        <h4 class="text-xs font-bold text-gray-900 uppercase tracking-wide mb-0.5">Pro Tip</h4>
-                                        <p class="text-sm text-gray-600">${event.pro_tips}</p>
+                                        <h4 class="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wide mb-0.5">Pro Tip</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">${event.pro_tips}</p>
                                     </div>
                                 </div>` : ''}
 
                                 ${event.what_to_expect ? `
                                 <div class="flex items-start">
-                                    <span class="flex-shrink-0 h-5 w-5 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xs font-bold mr-2">?</span>
+                                    <span class="flex-shrink-0 h-5 w-5 rounded-full bg-purple-100 dark:bg-purple-900/30 text-purple-600 dark:text-purple-400 flex items-center justify-center text-xs font-bold mr-2">?</span>
                                     <div>
-                                        <h4 class="text-xs font-bold text-gray-900 uppercase tracking-wide mb-0.5">Vibe Check</h4>
-                                        <p class="text-sm text-gray-600">${event.what_to_expect}</p>
+                                        <h4 class="text-xs font-bold text-gray-900 dark:text-white uppercase tracking-wide mb-0.5">Vibe Check</h4>
+                                        <p class="text-sm text-gray-600 dark:text-gray-400">${event.what_to_expect}</p>
                                     </div>
                                 </div>` : ''}
 
                                 <div class="flex space-x-2 pt-2">
-                                    <button class="flex-1 py-2 bg-white border border-gray-300 rounded text-xs font-bold text-gray-600 hover:bg-gray-50 shadow-sm">Copy Address</button>
-                                    <button class="flex-1 py-2 bg-white border border-gray-300 rounded text-xs font-bold text-gray-600 hover:bg-gray-50 shadow-sm">Show Map</button>
+                                    ${typeof event.taxi_card_index !== 'undefined' ? `
+                                    <button onclick="showCard(${event.taxi_card_index})" class="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white border border-transparent rounded text-xs font-bold shadow-sm flex items-center justify-center transition">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                                        Show Taxi Driver
+                                    </button>
+                                    ` : ''}
+                                    <button class="flex-1 py-2 bg-white dark:bg-dark-card border border-gray-300 dark:border-gray-600 rounded text-xs font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition">Copy Address</button>
                                 </div>
                             </div>
                         </div>
@@ -847,21 +887,21 @@
             container.innerHTML = `
                 <div class="mb-6 flex flex-col sm:flex-row sm:items-end justify-between">
                     <div>
-                        <h2 class="text-2xl font-bold text-gray-900">Detailed Itinerary</h2>
-                        <div class="flex items-center text-sm text-gray-500 mt-1">
+                        <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Detailed Itinerary</h2>
+                        <div class="flex items-center text-sm text-gray-500 dark:text-gray-400 mt-1">
                             <span class="mr-3">🌅 Sunrise: ${activeDay.sunrise}</span>
                             <span>🌇 Sunset: ${activeDay.sunset}</span>
                         </div>
                     </div>
-                    <div class="mt-4 sm:mt-0 flex space-x-1 bg-gray-100 p-1 rounded-lg">
-                        <button onclick="setFilter('all')" class="px-3 py-1 rounded-md text-xs font-bold transition ${activeFilter === 'all' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}">All</button>
-                        <button onclick="setFilter('food')" class="px-3 py-1 rounded-md text-xs font-bold transition ${activeFilter === 'food' ? 'bg-white text-orange-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}">Food</button>
-                        <button onclick="setFilter('activity')" class="px-3 py-1 rounded-md text-xs font-bold transition ${activeFilter === 'activity' ? 'bg-white text-pink-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}">See</button>
-                        <button onclick="setFilter('transport')" class="px-3 py-1 rounded-md text-xs font-bold transition ${activeFilter === 'transport' ? 'bg-white text-blue-600 shadow-sm' : 'text-gray-500 hover:text-gray-700'}">Go</button>
+                    <div class="mt-4 sm:mt-0 flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
+                        <button onclick="setFilter('all')" class="px-3 py-1 rounded-md text-xs font-bold transition ${activeFilter === 'all' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white'}">All</button>
+                        <button onclick="setFilter('food')" class="px-3 py-1 rounded-md text-xs font-bold transition ${activeFilter === 'food' ? 'bg-white dark:bg-gray-700 text-orange-600 dark:text-orange-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white'}">Food</button>
+                        <button onclick="setFilter('activity')" class="px-3 py-1 rounded-md text-xs font-bold transition ${activeFilter === 'activity' ? 'bg-white dark:bg-gray-700 text-pink-600 dark:text-pink-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white'}">See</button>
+                        <button onclick="setFilter('transport')" class="px-3 py-1 rounded-md text-xs font-bold transition ${activeFilter === 'transport' ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white'}">Go</button>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-lg shadow-sm overflow-hidden mb-6 sticky top-16 z-40 border-b border-gray-200">
+                <div class="bg-white dark:bg-dark-card rounded-lg shadow-sm overflow-hidden mb-6 sticky top-16 z-40 border-b border-gray-200 dark:border-gray-700">
                     <div class="flex overflow-x-auto hide-scrollbar">
                         ${tabsHtml}
                     </div>
@@ -876,54 +916,54 @@
         function renderBudget(container) {
             container.innerHTML = `
                 <div class="mb-6">
-                    <h2 class="text-2xl font-bold text-gray-900">Budget Breakdown</h2>
-                    <p class="text-gray-600">Total Estimated: <span class="font-bold">¥${tripData.budget.totalEstimated.toLocaleString()}</span> (Approx S$800)</p>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Budget Breakdown</h2>
+                    <p class="text-gray-600 dark:text-gray-400">Total Estimated: <span class="font-bold">¥${tripData.budget.totalEstimated.toLocaleString()}</span> (Approx S$800)</p>
                 </div>
 
                 <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
                     <!-- Chart Section -->
-                    <div class="bg-white p-6 rounded-xl card-shadow flex flex-col items-center">
-                        <h3 class="text-lg font-semibold mb-4 w-full text-left">Spending by Category</h3>
+                    <div class="bg-white dark:bg-dark-card p-6 rounded-xl card-shadow flex flex-col items-center">
+                        <h3 class="text-lg font-semibold mb-4 w-full text-left text-gray-900 dark:text-white">Spending by Category</h3>
                         <div class="chart-container">
                             <canvas id="budgetChart"></canvas>
                         </div>
                     </div>
 
                     <!-- Details Section -->
-                    <div class="bg-white p-6 rounded-xl card-shadow">
-                        <h3 class="text-lg font-semibold mb-4">Expense Details</h3>
+                    <div class="bg-white dark:bg-dark-card p-6 rounded-xl card-shadow">
+                        <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Expense Details</h3>
                         <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200">
-                                <thead class="bg-gray-50">
+                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                                <thead class="bg-gray-50 dark:bg-gray-800">
                                     <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Category</th>
-                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Amount (JPY)</th>
-                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">%</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount (JPY)</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">%</th>
                                     </tr>
                                 </thead>
-                                <tbody class="bg-white divide-y divide-gray-200">
+                                <tbody class="bg-white dark:bg-dark-card divide-y divide-gray-200 dark:divide-gray-700">
                                     ${tripData.budget.breakdown.map(item => {
                                         const pct = Math.round((item.amount / tripData.budget.totalEstimated) * 100);
                                         return `
                                         <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 flex items-center">
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white flex items-center">
                                                 <span class="h-3 w-3 rounded-full mr-2" style="background-color: ${item.color}"></span>
                                                 ${item.category}
                                             </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">¥${item.amount.toLocaleString()}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 text-right">${pct}%</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 text-right">¥${item.amount.toLocaleString()}</td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 text-right">${pct}%</td>
                                         </tr>
                                         `;
                                     }).join('')}
-                                     <tr class="bg-green-50">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-800">Surplus / Safety</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-green-800 font-bold text-right">¥${tripData.budget.surplus.toLocaleString()}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-green-800 text-right">-</td>
+                                     <tr class="bg-green-50 dark:bg-green-900/20">
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-800 dark:text-green-400">Surplus / Safety</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-green-800 dark:text-green-400 font-bold text-right">¥${tripData.budget.surplus.toLocaleString()}</td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-green-800 dark:text-green-400 text-right">-</td>
                                     </tr>
                                 </tbody>
                             </table>
                         </div>
-                        <div class="mt-4 p-4 bg-yellow-50 text-yellow-800 text-sm rounded border border-yellow-200">
+                        <div class="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400 text-sm rounded border border-yellow-200 dark:border-yellow-900/50">
                             <strong>Note:</strong> Budget excludes flights and accommodation. Approx ¥22,000 buffer remains for shopping or emergencies.
                         </div>
                     </div>
@@ -947,7 +987,14 @@
                         responsive: true,
                         maintainAspectRatio: false,
                         plugins: {
-                            legend: { position: 'bottom', labels: { usePointStyle: true, padding: 20 } }
+                            legend: { 
+                                position: 'bottom', 
+                                labels: { 
+                                    usePointStyle: true, 
+                                    padding: 20,
+                                    color: document.documentElement.classList.contains('dark') ? '#cbd5e1' : '#64748b'
+                                } 
+                            }
                         }
                     }
                 });
@@ -957,30 +1004,30 @@
         function renderChecklist(container) {
             container.innerHTML = `
                 <div class="mb-6">
-                    <h2 class="text-2xl font-bold text-gray-900">Pre-Trip Checklist</h2>
-                    <p class="text-gray-600">Essential items to secure before departure.</p>
+                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Pre-Trip Checklist</h2>
+                    <p class="text-gray-600 dark:text-gray-400">Essential items to secure before departure.</p>
                 </div>
 
-                <div class="bg-white rounded-xl card-shadow overflow-hidden">
+                <div class="bg-white dark:bg-dark-card rounded-xl card-shadow overflow-hidden">
                     <div class="p-6 space-y-4">
                         ${tripData.checklist.map(item => `
-                            <div class="flex items-center p-4 bg-gray-50 hover:bg-gray-100 rounded-lg transition border border-transparent hover:border-gray-200 cursor-pointer" onclick="toggleCheck('${item.id}')">
+                            <div class="flex items-center p-4 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition border border-transparent hover:border-gray-200 dark:hover:border-gray-600 cursor-pointer" onclick="toggleCheck('${item.id}')">
                                 <div class="flex-shrink-0 h-6 w-6 flex items-center justify-center">
-                                    <input type="checkbox" ${item.done ? 'checked' : ''} class="h-5 w-5 text-red-600 focus:ring-red-500 border-gray-300 rounded pointer-events-none">
+                                    <input type="checkbox" ${item.done ? 'checked' : ''} class="h-5 w-5 text-red-600 focus:ring-red-500 border-gray-300 dark:border-gray-600 rounded pointer-events-none">
                                 </div>
                                 <div class="ml-4 flex-grow">
-                                    <span class="text-base text-gray-900 font-medium ${item.done ? 'line-through text-gray-400' : ''}">${item.text}</span>
+                                    <span class="text-base text-gray-900 dark:text-gray-100 font-medium ${item.done ? 'line-through text-gray-400 dark:text-gray-500' : ''}">${item.text}</span>
                                 </div>
                             </div>
                         `).join('')}
                     </div>
-                    <div class="bg-gray-50 px-6 py-6 border-t border-gray-200">
-                        <h3 class="text-sm font-bold text-gray-900 uppercase tracking-wide mb-4">Pack for February</h3>
+                    <div class="bg-gray-50 dark:bg-gray-800 px-6 py-6 border-t border-gray-200 dark:border-gray-700">
+                        <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wide mb-4">Pack for February</h3>
                         <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div class="bg-white p-3 rounded text-center text-sm text-gray-600 border border-gray-100">🧥 HeatTech</div>
-                            <div class="bg-white p-3 rounded text-center text-sm text-gray-600 border border-gray-100">🧣 Scarf/Gloves</div>
-                            <div class="bg-white p-3 rounded text-center text-sm text-gray-600 border border-gray-100">🔋 Power Bank</div>
-                            <div class="bg-white p-3 rounded text-center text-sm text-gray-600 border border-gray-100">👟 Walking Shoes</div>
+                            <div class="bg-white dark:bg-dark-card p-3 rounded text-center text-sm text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-700">🧥 HeatTech</div>
+                            <div class="bg-white dark:bg-dark-card p-3 rounded text-center text-sm text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-700">🧣 Scarf/Gloves</div>
+                            <div class="bg-white dark:bg-dark-card p-3 rounded text-center text-sm text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-700">🔋 Power Bank</div>
+                            <div class="bg-white dark:bg-dark-card p-3 rounded text-center text-sm text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-700">👟 Walking Shoes</div>
                         </div>
                     </div>
                 </div>
