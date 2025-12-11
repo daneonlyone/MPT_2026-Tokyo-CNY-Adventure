@@ -17,6 +17,10 @@
                             text: '#f1f5f9',
                             muted: '#94a3b8'
                         }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        jp: ['Noto Sans JP', 'sans-serif'],
                     }
                 }
             }
@@ -27,9 +31,9 @@
     <style>
         body { font-family: 'Inter', sans-serif; transition: background-color 0.3s, color 0.3s; }
         
-        .chart-container { position: relative; width: 100%; max-width: 600px; margin: 0 auto; height: 350px; }
+        .chart-container { position: relative; width: 100%; max-width: 600px; margin: 0 auto; height: 300px; }
         
-        /* Sky Timeline */
+        /* Sky Timeline Gradient */
         .sky-timeline { 
             position: absolute; left: 24px; top: 0; bottom: 0; width: 6px; border-radius: 3px; z-index: 0; 
             background: linear-gradient(to bottom, #1e3a8a 0%, #fcd34d 25%, #60a5fa 35%, #60a5fa 65%, #fb923c 75%, #1e3a8a 85%, #0f172a 100%);
@@ -53,7 +57,28 @@
         .line-tobu { background-color: #0f6cc3; color: white; }
         .line-keio { background-color: #dd0077; color: white; }
 
-        #comm-card-overlay { font-family: 'Noto Sans JP', sans-serif; }
+        /* Toast */
+        #toast {
+            visibility: hidden; min-width: 250px; margin-left: -125px; background-color: #333; color: #fff;
+            text-align: center; border-radius: 50px; padding: 16px; position: fixed; z-index: 1000;
+            left: 50%; bottom: 30px; font-size: 14px; opacity: 0; transition: opacity 0.3s, bottom 0.3s;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3);
+        }
+        #toast.show { visibility: visible; opacity: 1; bottom: 50px; }
+
+        /* Print Styles */
+        @media print {
+            body { background-color: white !important; color: black !important; }
+            nav, footer, #tools-panel, .no-print { display: none !important; }
+            .details-content { max-height: none !important; display: block !important; border: none !important; }
+            .card-shadow { box-shadow: none !important; border: 1px solid #ddd !important; break-inside: avoid; }
+            .active-tab { border: none !important; color: black !important; font-weight: bold !important; text-align: left !important; padding: 0 !important; margin-bottom: 10px !important; font-size: 1.2rem !important; }
+            .sky-timeline { display: none !important; } 
+            #main-content { padding-top: 0 !important; width: 100% !important; max-width: none !important; }
+            .hidden-print { display: none !important; }
+            /* Force expansion of tabs for printing */
+            .tab-content { display: block !important; }
+        }
     </style>
 </head>
 <body class="min-h-screen flex flex-col bg-[#fdfbf7] text-gray-800 dark:bg-dark-bg dark:text-dark-text transition-colors duration-300">
@@ -71,6 +96,12 @@
                     </div>
                 </div>
                 <div class="flex items-center space-x-3">
+                     <!-- Tokyo Clock -->
+                     <div class="hidden sm:flex flex-col items-end mr-2 text-xs text-gray-500 dark:text-gray-400">
+                        <span class="uppercase tracking-wider font-bold">Tokyo Time</span>
+                        <span id="jst-clock" class="font-mono font-bold text-gray-800 dark:text-white">--:--</span>
+                     </div>
+
                      <!-- Dark Mode Toggle -->
                      <button onclick="toggleDarkMode()" class="p-2 rounded-full text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700 transition">
                         <svg id="moon-icon" class="w-5 h-5 block dark:hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"></path></svg>
@@ -81,7 +112,6 @@
                         <span class="mr-2 text-xs font-bold uppercase">Tools</span>
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
                      </button>
-                     <div class="h-8 w-8 rounded-full bg-gradient-to-br from-red-500 to-red-600 flex items-center justify-center text-white font-bold text-xs shadow-md">JP</div>
                 </div>
             </div>
         </div>
@@ -95,16 +125,40 @@
     <div id="tools-panel" class="hidden fixed inset-0 z-[60] bg-gray-900 bg-opacity-50 backdrop-blur-sm flex justify-end transition-opacity">
         <div class="w-80 bg-white dark:bg-dark-card h-full shadow-2xl p-6 overflow-y-auto transform transition-transform duration-300 translate-x-0 flex flex-col border-l dark:border-gray-700">
             <div class="flex justify-between items-center mb-6">
-                <h2 class="text-xl font-bold text-gray-900 dark:text-white">Travel Tools</h2>
+                <h2 class="text-xl font-bold text-gray-900 dark:text-white">Travel Companion</h2>
                 <button onclick="toggleTools()" class="text-gray-400 hover:text-gray-600 dark:hover:text-gray-200">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
                 </button>
             </div>
             
             <div class="space-y-6 flex-grow">
+                <!-- Backup Print -->
+                <button onclick="window.print()" class="w-full py-3 bg-gray-800 text-white rounded-lg flex items-center justify-center font-bold text-sm hover:bg-gray-700 transition">
+                    <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path></svg>
+                    Print / Save PDF (Offline)
+                </button>
+
+                <!-- Currency Converter -->
+                <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-900/50">
+                    <h3 class="font-bold text-blue-800 dark:text-blue-400 mb-2 flex items-center text-sm uppercase tracking-wide">
+                        <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                        Currency (Est. ¥112/S$1)
+                    </h3>
+                    <div class="space-y-3">
+                        <div>
+                            <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">JPY (¥)</label>
+                            <input type="number" id="input-jpy" oninput="convertCurrency('jpy')" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" placeholder="1000">
+                        </div>
+                        <div>
+                            <label class="block text-xs text-gray-500 dark:text-gray-400 mb-1">SGD (S$)</label>
+                            <input type="number" id="input-sgd" oninput="convertCurrency('sgd')" class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded bg-white dark:bg-gray-800 text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm" placeholder="8.92">
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Emergency -->
                 <div class="bg-red-50 dark:bg-red-900/20 p-4 rounded-lg border border-red-100 dark:border-red-900/50">
-                    <h3 class="font-bold text-red-800 dark:text-red-400 mb-2 flex items-center">
+                    <h3 class="font-bold text-red-800 dark:text-red-400 mb-2 flex items-center text-sm uppercase tracking-wide">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                         Emergency
                     </h3>
@@ -117,11 +171,10 @@
 
                 <!-- Comm Cards -->
                 <div>
-                    <h3 class="font-bold text-gray-900 dark:text-white mb-2 flex items-center">
+                    <h3 class="font-bold text-gray-900 dark:text-white mb-2 flex items-center text-sm uppercase tracking-wide">
                         <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-                        Flash Cards (Show Locals)
+                        Flash Cards
                     </h3>
-                    <p class="text-xs text-gray-500 dark:text-gray-400 mb-3">Tap to show full screen</p>
                     <div class="space-y-2" id="comm-cards-container">
                         <!-- Populated by JS -->
                     </div>
@@ -139,11 +192,14 @@
         <div class="w-full h-px bg-gray-200 dark:bg-gray-700 mb-8"></div>
         <div>
              <span class="text-sm font-bold text-white bg-red-600 px-3 py-1 rounded-full uppercase tracking-widest">Japanese</span>
-             <h1 id="card-jp" class="text-5xl sm:text-6xl font-black text-black dark:text-white mt-6 leading-tight break-words">駅はどこですか？</h1>
+             <h1 id="card-jp" class="text-5xl sm:text-6xl font-black text-black dark:text-white mt-6 leading-tight break-words font-jp">駅はどこですか？</h1>
              <p id="card-kana" class="text-xl text-gray-500 dark:text-gray-400 mt-4 font-medium">Eki wa doko desu ka?</p>
         </div>
         <div class="absolute bottom-10 text-gray-400 text-sm animate-pulse">Tap anywhere to close</div>
     </div>
+
+    <!-- Toast Notification -->
+    <div id="toast">Address copied to clipboard!</div>
 
     <!-- Main Content Area -->
     <main class="flex-grow max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full transition-all duration-300" id="main-content">
@@ -157,7 +213,7 @@
             <div class="flex justify-center space-x-4 mt-4 text-xs text-gray-500">
                 <span>Dark Mode Ready</span>
                 <span>•</span>
-                <span>Offline Capable Layout</span>
+                <span>Offline Optimized (Print to PDF)</span>
             </div>
         </div>
     </footer>
@@ -172,16 +228,6 @@
                 budgetLimitJPY: 112000,
                 budgetLimitSGD: 1000
             },
-            budget: {
-                breakdown: [
-                    { category: "Food & Dining", amount: 45000, color: "#f87171" }, 
-                    { category: "Transport", amount: 12000, color: "#fbbf24" }, 
-                    { category: "Attractions", amount: 13000, color: "#60a5fa" }, 
-                    { category: "Shopping/Misc", amount: 20000, color: "#34d399" } 
-                ],
-                totalEstimated: 90000,
-                surplus: 22000
-            },
             commCards: [
                 { en: "Take me to Tosei Hotel Ueno", jp: "トーセイホテルココネ上野御徒町までお願いします。", kana: "Tosei Hotel Cocone Ueno Okachimachi made onegaishimasu." },
                 { en: "Take me to Narita Airport", jp: "成田空港までお願いします。", kana: "Narita Kuko made onegaishimasu." },
@@ -192,6 +238,55 @@
                 { en: "Where is the bathroom?", jp: "トイレはどこですか？", kana: "Toire wa doko desu ka?" },
                 { en: "Excuse me / Sorry", jp: "すみません", kana: "Sumimasen" },
                 { en: "Thank you", jp: "ありがとうございます", kana: "Arigatou gozaimasu" }
+            ],
+            // Detailed Checklist
+            checklist: {
+                essentials: [
+                    { id: "c1", text: "Buy DisneySea Tickets (2 months prior)", done: false },
+                    { id: "c2", text: "Reserve Bar Benfiddich (Jan 20)", done: false },
+                    { id: "c3", text: "Reserve Jojoen Window Seat (1 month prior)", done: false },
+                    { id: "c4", text: "Register Visit Japan Web (QR Code)", done: false }
+                ],
+                tech: [
+                    { id: "t1", text: "Buy eSIM (Ubigi/Airalo)", done: false },
+                    { id: "t2", text: "Add Suica to Apple Wallet", done: false },
+                    { id: "t3", text: "Bring Power Bank (Essential!)", done: false },
+                    { id: "t4", text: "Pack Universal Adapter (Type A)", done: false }
+                ],
+                clothing: [
+                    { id: "cl1", text: "HeatTech Innerwear (Top/Bottom)", done: false },
+                    { id: "cl2", text: "Comfortable Walking Shoes (Broken in)", done: false },
+                    { id: "cl3", text: "Gloves & Scarf (Feb is cold)", done: false },
+                    { id: "cl4", text: "Warm Coat (Windproof)", done: false }
+                ],
+                meds: [
+                    { id: "m1", text: "Personal Meds (Check Japan rules)", done: false },
+                    { id: "m2", text: "Painkillers (Panadol/Nurofen)", done: false },
+                    { id: "m3", text: "Lip Balm/Moisturizer (Dry air)", done: false }
+                ]
+            },
+            // Notes & Guides
+            guides: [
+                {
+                    title: "🚆 Train Etiquette",
+                    icon: "🤐",
+                    content: "Trains are quiet zones. Set phone to silent ('Manner Mode'). No talking on phone calls. Backpacks to the front on crowded trains."
+                },
+                {
+                    title: "🗑️ Trash Logic",
+                    icon: "🥡",
+                    content: "Public bins are RARE. Carry a small plastic bag to hold your trash until you find a bin (usually at convenience stores, vending machines, or stations)."
+                },
+                {
+                    title: "💴 Tipping",
+                    icon: "🚫",
+                    content: "NO Tipping. It is considered rude. The price you see is the price you pay. Service charge is sometimes included in high-end places."
+                },
+                {
+                    title: "🚽 Restrooms",
+                    icon: "✨",
+                    content: "Free and clean. Found in all train stations and convenience stores (Konbini). Look for 'Otohime' (sound princess) to mask sounds."
+                }
             ],
             itinerary: [
                 {
@@ -213,6 +308,8 @@
                             train_strategy: "Buy a round-trip Skyliner ticket if available for a discount. All seats are reserved.",
                             pro_tips: "Have your Visit Japan Web QR code screenshot ready to speed up customs. Grab a bottle of green tea from a vending machine on the platform.",
                             what_to_expect: "Efficient, clean, but potentially busy immigration lines.",
+                            map_query: "Keisei Narita Airport Station",
+                            address_jp: "成田国際空港", 
                             type: "transport",
                             indoor: true
                         },
@@ -222,9 +319,11 @@
                             location_overview: "Modern business hotel in Ueno Okachimachi. Excellent access to multiple subway lines and the Keisei Skyliner station.", 
                             transport_detail: "From Keisei Ueno Station, it is a 5-8 minute walk. Exit the station, walk south towards Okachimachi alongside Ueno Park/Ameyoko.",
                             station_exit: "Keisei Ueno Main Exit",
-                            taxi_card_index: 0, // Links to "Take me to Tosei Hotel"
+                            taxi_card_index: 0, 
                             pro_tips: "Ask for a high floor room for less street noise. The hotel has a coin laundry if needed.",
                             what_to_expect: "Compact room (standard Tokyo style). Check-in is usually fast.",
+                            map_query: "Tosei Hotel Cocone Ueno Okachimachi",
+                            address_jp: "〒110-0005 東京都台東区上野3-23-9",
                             type: "logistics",
                             indoor: true
                         },
@@ -237,6 +336,8 @@
                             station_exit: "Electric Town Exit",
                             pro_tips: "Head to 'Radio Kaikan' right outside Electric Town exit for everything from figures to cards. 'Yodobashi Camera' is great for gadgets.",
                             what_to_expect: "Loud music, bright lights, crowds of tourists and locals.",
+                            map_query: "Akihabara Radio Kaikan",
+                            address_jp: "〒101-0021 東京都千代田区外神田1-15-16",
                             type: "activity",
                             indoor: false
                         },
@@ -248,6 +349,8 @@
                             pro_tips: "Try 'Niku no Oyama' for cheap, hot menchi-katsu (fried meat cutlet). Or grab a doner kebab if you want something quick.",
                             what_to_expect: "Chaotic energy, shouting vendors, delicious smells.",
                             cost: "¥2,000", 
+                            map_query: "Ameyoko Shopping Street",
+                            address_jp: "〒110-0005 東京都台東区上野4-9-14",
                             type: "food",
                             indoor: false
                         }
@@ -272,6 +375,8 @@
                             train_strategy: "Take the 'Special Express' (Tokkyu) or 'Semi-Special Express' (Jun-Tokkyu). Do NOT take the Local.",
                             pro_tips: "Go early to see Mt. Fuji clearly. Clouds usually roll in by 10 AM.",
                             what_to_expect: "Commuter rush on the way to Shinjuku, but the train to Takao goes against traffic.",
+                            map_query: "Shinjuku Station Keio Line",
+                            address_jp: "新宿駅 (京王線)",
                             type: "transport",
                             indoor: true
                         },
@@ -284,6 +389,8 @@
                             pro_tips: "Eat 'Tenguyaki' (bean paste snack) at the summit. Stop at 'Takahashiya' at the base for Tororo Soba lunch.",
                             what_to_expect: "Crisp winter air (wear layers!), beautiful temple architecture, moderate physical exertion.",
                             cost: "¥3,500", 
+                            map_query: "Takaosanguchi Station",
+                            address_jp: "〒193-0844 東京都八王子市高尾町",
                             type: "activity",
                             indoor: false
                         },
@@ -295,6 +402,8 @@
                             station_exit: "West Exit (towards Uniqlo)",
                             pro_tips: "This place is great for photos before it gets too dark/crowded. It smells of grilled chicken smoke.",
                             what_to_expect: "Very tight spaces, retro Showa-era atmosphere.",
+                            map_query: "Omoide Yokocho",
+                            address_jp: "〒160-0023 東京都新宿区西新宿1-2",
                             type: "transport",
                             indoor: false
                         },
@@ -306,6 +415,8 @@
                             station_exit: "Tochomae or Shinjuku West",
                             pro_tips: "Bag check is required. Sunset is at 17:23, so arrive by 16:45 to get a good spot.",
                             what_to_expect: "Stunning 360 views. Can be a line for the elevator.",
+                            map_query: "Tokyo Metropolitan Government Building",
+                            address_jp: "〒163-8001 東京都新宿区西新宿2-8-1",
                             type: "activity",
                             indoor: true
                         },
@@ -314,10 +425,12 @@
                             title: "Bar Benfiddich", 
                             location_overview: "Ranked among the World's 50 Best Bars. No menu mixology.", 
                             transport_detail: "Located in Nishi-Shinjuku, 9th floor of a nondescript building. 5 min walk from Metro Gov Bldg.",
-                            taxi_card_index: 4, // "I have a reservation"
+                            taxi_card_index: 4, 
                             pro_tips: "There is no menu. Tell Hiroyasu-san a base spirit (e.g., Gin) and a flavor profile (e.g., herbal, citrus).",
                             what_to_expect: "Dark, moody, apothecary vibes. Quiet and sophisticated.",
                             cost: "¥8,000", 
+                            map_query: "Bar Benfiddich Tokyo",
+                            address_jp: "〒160-0023 東京都新宿区西新宿1-13-7 大和家ビル 9F",
                             type: "food",
                             indoor: true
                         }
@@ -342,6 +455,8 @@
                             train_strategy: "Make sure you catch an 'Express' (Kyuko) or 'Rapid'. The Local train stops at every small station.",
                             pro_tips: "The train ride is about 45 mins. Sit on the right side for occasional Skytree views as you leave Tokyo.",
                             what_to_expect: "Suburban commuter train. Less crowded than central lines.",
+                            map_query: "Kasukabe Station",
+                            address_jp: "春日部駅",
                             type: "transport",
                             indoor: true
                         },
@@ -352,6 +467,8 @@
                             transport_detail: "Short walk from Kasukabe Station East Exit. Turn right after exiting and walk along the main street.",
                             pro_tips: "Get the special commemorative stamp. Walk to the nearby Ito Yokado (Sato Kokonokado in the anime) to see the sign if you have time.",
                             what_to_expect: "Small but charming for fans. Staff are friendly.",
+                            map_query: "Puratto Kasukabe",
+                            address_jp: "〒344-0061 埼玉県春日部市粕壁1-3-4",
                             type: "activity",
                             indoor: true
                         },
@@ -362,10 +479,12 @@
                             transport_detail: "Take Tobu Skytree line from Kasukabe directly to Tokyo Skytree Station. Go to 'Solamachi Dining Skytree View' elevators.",
                             transport_badge: { name: "Tobu Skytree", class: "line-tobu" },
                             station_exit: "Skytree Station (Direct)",
-                            taxi_card_index: 4, // Reservation
+                            taxi_card_index: 4, 
                             pro_tips: "The 'Lunch Set' (approx ¥3,500-4,500) includes salad, kimchi, rice, soup, dessert, and coffee. It's incredible value.",
                             what_to_expect: "Impeccable service, white tablecloths, grilling your own high-quality meat.",
                             cost: "¥4,500", 
+                            map_query: "Jojoen Tokyo Skytree Town Solamachi",
+                            address_jp: "〒131-0045 東京都墨田区押上1-1-2 東京ソラマチ 30F",
                             type: "food",
                             indoor: true
                         },
@@ -376,6 +495,8 @@
                             transport_detail: "Walk across the Sumida River Walk bridge from Skytree to Asakusa (15 mins scenic walk).",
                             pro_tips: "Draw an Omikuji (fortune) at Senso-ji (¥100). If it's 'Bad Luck', tie it to the rack to leave it behind.",
                             what_to_expect: "Hatoya may have a line. Senso-ji is always crowded but atmospheric.",
+                            map_query: "Hatoya Asakusa",
+                            address_jp: "〒111-0033 東京都台東区花川戸2-14-3",
                             type: "activity",
                             indoor: false
                         },
@@ -387,6 +508,8 @@
                             pro_tips: "Look for a place with plastic sheeting (walls) to keep warm. Order 'Motsu-nikomi' (tripe stew).",
                             what_to_expect: "Noisy, smoky, friendly. You might share a table with locals.",
                             cost: "¥3,000", 
+                            map_query: "Hoppy Street Asakusa",
+                            address_jp: "浅草 ホッピー通り", // Generic area
                             type: "food",
                             indoor: false
                         }
@@ -411,6 +534,8 @@
                             train_strategy: "The transfer at Hatchobori is significantly easier/shorter than transferring at Tokyo Station. At Hatchobori, follow the red Keiyo line signs.",
                             pro_tips: "Eat a convenience store breakfast on the way. Food lines inside the park are long.",
                             what_to_expect: "Lots of people wearing Disney ears on the Keiyo line.",
+                            map_query: "Hatchobori Station",
+                            address_jp: "八丁堀駅",
                             type: "transport",
                             indoor: true
                         },
@@ -422,6 +547,8 @@
                             pro_tips: "Fantasy Springs is the NEW area. You CANNOT enter without a pass. Book this first, then head to Mysterious Island.",
                             what_to_expect: "Incredible theming. It feels more like Europe than a theme park.",
                             cost: "¥10,900 Tix", 
+                            map_query: "Tokyo DisneySea",
+                            address_jp: "〒279-8511 千葉県浦安市舞浜1-13",
                             type: "activity",
                             indoor: false
                         },
@@ -433,6 +560,8 @@
                             pro_tips: "The 'Refrescos' stand near the Fortress usually has shorter lines for smoked turkey legs.",
                             what_to_expect: "Cute food that tastes surprisingly good.",
                             cost: "¥5,000", 
+                            map_query: "Tokyo DisneySea Mysterious Island",
+                            address_jp: "〒279-8511 千葉県浦安市舞浜1-13",
                             type: "food",
                             indoor: false
                         },
@@ -467,6 +596,8 @@
                             train_strategy: "Sit in the front car for easy exit at Nakameguro.",
                             pro_tips: "You can leave your big bags at the hotel bell desk and pick them up later.",
                             what_to_expect: "Morning rush hour, but going towards Nakameguro (away from business districts) might be okay.",
+                            map_query: "Nakameguro Station",
+                            address_jp: "中目黒駅",
                             type: "transport",
                             indoor: true
                         },
@@ -478,6 +609,8 @@
                             pro_tips: "Go to the 3rd floor (Arriviamo Bar) terrace if it's sunny. Order the 'Tokyo Roast' flight or a tea-based cocktail.",
                             what_to_expect: "Design perfection. Expensive but worth it for the experience.",
                             cost: "¥2,500", 
+                            map_query: "Starbucks Reserve Roastery Tokyo",
+                            address_jp: "〒153-0042 東京都目黒区青葉台2-19-23",
                             type: "food",
                             indoor: true
                         },
@@ -488,6 +621,8 @@
                             transport_detail: "Return to Ueno area. Walk 10 mins from Okachimachi/Ueno station.",
                             pro_tips: "This is THE spot for plum blossoms. Great for close-up flower photography.",
                             what_to_expect: "Food stalls in the courtyard selling yakisoba and chocolate bananas.",
+                            map_query: "Yushima Tenjin",
+                            address_jp: "〒113-0034 東京都文京区湯島3-30-1",
                             type: "activity",
                             indoor: false
                         },
@@ -499,6 +634,8 @@
                             pro_tips: "KitKats, skincare (Melano CC, Hada Labo), and instant ramen are cheaper here than at the airport.",
                             what_to_expect: "Tight aisles, lots of products.",
                             cost: "¥3,000", 
+                            map_query: "Takeya Okachimachi",
+                            address_jp: "〒110-8583 東京都台東区多慶屋御徒町本店",
                             type: "shopping",
                             indoor: true
                         },
@@ -509,33 +646,28 @@
                             transport_detail: "Pick up bags from hotel. Walk to Keisei Ueno Station. Board Skyliner. Arrive Narita ~45 mins later.",
                             transport_badge: { name: "Skyliner", class: "line-skyliner" },
                             station_exit: "Keisei Ueno Entrance",
-                            taxi_card_index: 1, // "Take me to Narita Airport"
+                            taxi_card_index: 1, 
                             pro_tips: "There are vending machines on the Skyliner platform. Grab a final Boss Coffee.",
                             what_to_expect: "Smooth, quiet ride. Sadness that the trip is over.",
+                            map_query: "Keisei Ueno Station",
+                            address_jp: "京成上野駅",
                             type: "transport",
                             indoor: true
                         }
                     ]
                 }
             ],
-            checklist: [
-                { id: "c1", text: "Buy DisneySea Tickets (2 months prior)", done: false },
-                { id: "c2", text: "Reserve Bar Benfiddich (Jan 20)", done: false },
-                { id: "c3", text: "Reserve Jojoen Window Seat (1 month prior)", done: false },
-                { id: "c4", text: "Buy eSIM (Ubigi/Airalo)", done: false },
-                { id: "c5", text: "Add Suica to Apple Wallet", done: false },
-                { id: "c6", text: "Register Visit Japan Web", done: false }
-            ]
+            // ... (rest of checklist and guides logic)
         };
 
         let currentView = 'dashboard';
         let activeDayIndex = 0;
         let activeFilter = 'all';
+        let jpyRate = 112; 
 
         // --- Core Functions ---
 
         function init() {
-            // Dark mode check
             if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
                 document.documentElement.classList.add('dark');
             } else {
@@ -544,14 +676,22 @@
             renderNav();
             renderTools();
             renderView();
-            // Load checklist state
+            updateClock();
+            setInterval(updateClock, 1000);
+            
             const savedChecklist = localStorage.getItem('tokyoChecklist');
             if (savedChecklist) {
                 const parsed = JSON.parse(savedChecklist);
-                tripData.checklist.forEach(item => {
+                Object.values(tripData.checklist).flat().forEach(item => {
                     if (parsed[item.id]) item.done = true;
                 });
             }
+        }
+
+        function updateClock() {
+            const now = new Date();
+            const options = { timeZone: 'Asia/Tokyo', hour: '2-digit', minute: '2-digit' };
+            document.getElementById('jst-clock').textContent = now.toLocaleTimeString('en-GB', options);
         }
 
         function toggleDarkMode() {
@@ -562,6 +702,31 @@
                 document.documentElement.classList.add('dark');
                 localStorage.theme = 'dark';
             }
+        }
+
+        function convertCurrency(source) {
+            const jpyInput = document.getElementById('input-jpy');
+            const sgdInput = document.getElementById('input-sgd');
+            if (source === 'jpy') {
+                const jpy = parseFloat(jpyInput.value);
+                if (!isNaN(jpy)) sgdInput.value = (jpy / jpyRate).toFixed(2);
+                else sgdInput.value = '';
+            } else {
+                const sgd = parseFloat(sgdInput.value);
+                if (!isNaN(sgd)) jpyInput.value = Math.round(sgd * jpyRate);
+                else jpyInput.value = '';
+            }
+        }
+
+        function copyAddress(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                const toast = document.getElementById("toast");
+                toast.className = "show";
+                setTimeout(() => { toast.className = toast.className.replace("show", ""); }, 3000);
+            }).catch(err => {
+                console.error('Failed to copy: ', err);
+                alert("Copied: " + text);
+            });
         }
 
         function setView(view) {
@@ -582,7 +747,6 @@
             document.getElementById('card-jp').textContent = card.jp;
             document.getElementById('card-kana').textContent = card.kana;
             document.getElementById('comm-card-overlay').classList.remove('hidden');
-            // Check if tools panel is open, if so close it
             const tools = document.getElementById('tools-panel');
             if(!tools.classList.contains('hidden')) toggleTools();
         }
@@ -595,10 +759,8 @@
             const views = [
                 { id: 'dashboard', label: 'Dashboard' },
                 { id: 'itinerary', label: 'Itinerary' },
-                { id: 'budget', label: 'Budget' },
                 { id: 'checklist', label: 'Checklist' }
             ];
-
             const desktopContainer = document.getElementById('desktop-nav');
             const mobileContainer = document.getElementById('mobile-nav');
             
@@ -627,15 +789,11 @@
 
         function renderView() {
             const main = document.getElementById('main-content');
-            main.innerHTML = ''; // Clear
-
+            main.innerHTML = ''; 
             if (currentView === 'dashboard') renderDashboard(main);
             if (currentView === 'itinerary') renderItinerary(main);
-            if (currentView === 'budget') renderBudget(main);
             if (currentView === 'checklist') renderChecklist(main);
         }
-
-        // --- View Renderers ---
 
         function renderDashboard(container) {
             container.innerHTML = `
@@ -649,18 +807,29 @@
                         <span class="font-bold text-gray-900 dark:text-white">Cold & Crisp (2°C - 10°C)</span>
                     </div>
                 </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-                    <div class="bg-white dark:bg-dark-card rounded-xl p-6 card-shadow border-t-4 border-red-500 relative overflow-hidden">
-                        <div class="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Total Budget</div>
-                        <div class="text-3xl font-extrabold text-gray-900 dark:text-white">¥${tripData.budget.totalEstimated.toLocaleString()}</div>
-                        <div class="text-xs font-medium text-green-600 dark:text-green-400 mt-2 bg-green-50 dark:bg-green-900/20 inline-block px-2 py-1 rounded">Safe Margin: ¥${tripData.budget.surplus.toLocaleString()}</div>
+                
+                <!-- Tips Section (New) -->
+                <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-xl border border-blue-100 dark:border-blue-900/50 mb-8 flex items-start">
+                    <span class="text-2xl mr-3">💡</span>
+                    <div>
+                        <h3 class="font-bold text-blue-900 dark:text-blue-300 mb-1">Pro Tips</h3>
+                        <p class="text-sm text-blue-800 dark:text-blue-200">
+                            • Always carry a small plastic bag for trash.<br>
+                            • Trains are silent zones (no calls).<br>
+                            • Google Maps is your best friend for exits.
+                        </p>
                     </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+                    <!-- Theme -->
                     <div class="bg-white dark:bg-dark-card rounded-xl p-6 card-shadow border-t-4 border-amber-400">
                          <div class="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Trip Theme</div>
                         <div class="text-xl font-bold text-gray-900 dark:text-white">Anime, Peaks & Retro</div>
                          <div class="mt-2 text-xs text-gray-500 dark:text-gray-400">Focus on unique solo experiences.</div>
                     </div>
+                    <!-- Base Camp -->
                      <div class="bg-white dark:bg-dark-card rounded-xl p-6 card-shadow border-t-4 border-blue-400">
                          <div class="text-gray-500 dark:text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Base Camp</div>
                         <div class="text-lg font-bold text-gray-900 dark:text-white truncate">Ueno Okachimachi</div>
@@ -669,6 +838,7 @@
                             Tosei Hotel Cocone
                         </div>
                     </div>
+                    <!-- Sun Cycle -->
                     <div class="bg-gradient-to-br from-gray-800 to-gray-900 rounded-xl p-6 card-shadow text-white">
                         <div class="text-gray-400 text-xs font-bold uppercase tracking-wider mb-1">Daylight Cycle (Feb)</div>
                         <div class="flex justify-between items-end mt-2">
@@ -734,7 +904,7 @@
                     <div class="bg-white dark:bg-dark-card rounded-xl p-6 card-shadow flex flex-col">
                         <h2 class="text-lg font-bold text-gray-900 dark:text-white mb-4">Pending Tasks</h2>
                          <div class="flex-grow space-y-3">
-                            ${tripData.checklist.filter(i => !i.done).slice(0, 5).map(item => `
+                            ${tripData.checklist.essentials.filter(i => !i.done).slice(0, 5).map(item => `
                                 <div class="flex items-start">
                                     <div class="flex-shrink-0 h-5 w-5 flex items-center justify-center rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 mt-0.5">
                                         <div class="h-2.5 w-2.5 rounded-sm bg-transparent"></div>
@@ -742,7 +912,7 @@
                                     <span class="ml-3 text-sm text-gray-700 dark:text-gray-300">${item.text}</span>
                                 </div>
                             `).join('')}
-                            ${tripData.checklist.filter(i => !i.done).length === 0 ? '<p class="text-sm text-gray-500 italic">All set! You are ready to go.</p>' : ''}
+                            ${tripData.checklist.essentials.filter(i => !i.done).length === 0 ? '<p class="text-sm text-gray-500 italic">All set! You are ready to go.</p>' : ''}
                         </div>
                         <button onclick="setView('checklist')" class="mt-6 w-full py-2 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-300 text-sm font-bold rounded-lg transition border border-gray-200 dark:border-gray-600">
                             Open Checklist
@@ -786,9 +956,8 @@
                 else timeIcon = '☀️'; 
 
                 return `
-                <div class="relative pl-8 sm:pl-12 py-4 group">
+                <div class="relative pl-8 sm:pl-12 py-4 group break-inside-avoid">
                     <div class="sky-timeline"></div>
-                    
                     <div class="absolute left-6 sm:left-10 top-6 transform -translate-x-1/2 z-10 flex flex-col items-center">
                         <div class="h-3 w-3 rounded-full border-2 border-white dark:border-dark-bg shadow-sm ${event.title.includes('RESERVATION') ? 'bg-red-500 animate-pulse' : 'bg-white dark:bg-gray-600'}"></div>
                         <div class="mt-1 text-[10px] leading-none text-gray-400 select-none">${timeIcon}</div>
@@ -826,13 +995,14 @@
                                          ${event.cost ? `<span class="text-[10px] font-bold uppercase tracking-wider bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 px-2 py-0.5 rounded-full">${event.cost}</span>` : ''}
                                     </div>
                                 </div>
-                                <div class="ml-2 flex-shrink-0 self-center">
+                                <div class="ml-2 flex-shrink-0 self-center no-print">
                                     <svg id="chevron-evt-${idx}" class="w-5 h-5 text-gray-400 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                                 </div>
                             </div>
                              <p class="text-sm text-gray-600 dark:text-gray-400 mt-3 line-clamp-2">${event.location_overview}</p>
                         </div>
 
+                        <!-- Deep Dive Content -->
                         <div id="details-evt-${idx}" class="details-content bg-gray-50 dark:bg-gray-800/50 border-t border-gray-100 dark:border-gray-700">
                             <div class="p-5 space-y-4">
                                 <div class="bg-white dark:bg-dark-card p-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm">
@@ -868,14 +1038,26 @@
                                     </div>
                                 </div>` : ''}
 
-                                <div class="flex space-x-2 pt-2">
+                                <!-- ACTION BUTTONS ROW -->
+                                <div class="flex flex-col sm:flex-row gap-3 pt-2 no-print">
                                     ${typeof event.taxi_card_index !== 'undefined' ? `
-                                    <button onclick="showCard(${event.taxi_card_index})" class="flex-1 py-2 bg-red-600 hover:bg-red-700 text-white border border-transparent rounded text-xs font-bold shadow-sm flex items-center justify-center transition">
+                                    <button onclick="showCard(${event.taxi_card_index})" class="flex-1 py-2.5 bg-white dark:bg-dark-card border border-red-500 text-red-600 dark:text-red-400 rounded-lg text-xs font-bold shadow-sm flex items-center justify-center hover:bg-red-50 dark:hover:bg-red-900/20 transition">
                                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
-                                        Show Taxi Driver
+                                        Show Taxi
                                     </button>
                                     ` : ''}
-                                    <button class="flex-1 py-2 bg-white dark:bg-dark-card border border-gray-300 dark:border-gray-600 rounded text-xs font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition">Copy Address</button>
+                                    ${event.address_jp ? `
+                                    <button onclick="copyAddress('${event.address_jp}')" class="flex-1 py-2.5 bg-white dark:bg-dark-card border border-gray-300 dark:border-gray-600 rounded-lg text-xs font-bold text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 shadow-sm transition flex items-center justify-center">
+                                        <svg class="w-4 h-4 mr-1 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"></path></svg>
+                                        Copy Address
+                                    </button>
+                                    ` : ''}
+                                    ${event.map_query ? `
+                                    <a href="https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(event.map_query)}" target="_blank" class="flex-1 py-2.5 bg-blue-600 border border-transparent rounded-lg text-xs font-bold text-white hover:bg-blue-700 shadow-sm transition flex items-center justify-center">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                        Navigate
+                                    </a>
+                                    ` : ''}
                                 </div>
                             </div>
                         </div>
@@ -893,11 +1075,11 @@
                             <span>🌇 Sunset: ${activeDay.sunset}</span>
                         </div>
                     </div>
-                    <div class="mt-4 sm:mt-0 flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg">
-                        <button onclick="setFilter('all')" class="px-3 py-1 rounded-md text-xs font-bold transition ${activeFilter === 'all' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white'}">All</button>
-                        <button onclick="setFilter('food')" class="px-3 py-1 rounded-md text-xs font-bold transition ${activeFilter === 'food' ? 'bg-white dark:bg-gray-700 text-orange-600 dark:text-orange-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white'}">Food</button>
-                        <button onclick="setFilter('activity')" class="px-3 py-1 rounded-md text-xs font-bold transition ${activeFilter === 'activity' ? 'bg-white dark:bg-gray-700 text-pink-600 dark:text-pink-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white'}">See</button>
-                        <button onclick="setFilter('transport')" class="px-3 py-1 rounded-md text-xs font-bold transition ${activeFilter === 'transport' ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white'}">Go</button>
+                    <div class="mt-4 sm:mt-0 flex space-x-1 bg-gray-100 dark:bg-gray-800 p-1 rounded-lg no-print overflow-x-auto">
+                        <button onclick="setFilter('all')" class="px-3 py-1 rounded-md text-xs font-bold transition whitespace-nowrap ${activeFilter === 'all' ? 'bg-white dark:bg-gray-700 text-gray-900 dark:text-white shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white'}">All</button>
+                        <button onclick="setFilter('food')" class="px-3 py-1 rounded-md text-xs font-bold transition whitespace-nowrap ${activeFilter === 'food' ? 'bg-white dark:bg-gray-700 text-orange-600 dark:text-orange-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white'}">Food</button>
+                        <button onclick="setFilter('activity')" class="px-3 py-1 rounded-md text-xs font-bold transition whitespace-nowrap ${activeFilter === 'activity' ? 'bg-white dark:bg-gray-700 text-pink-600 dark:text-pink-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white'}">See</button>
+                        <button onclick="setFilter('transport')" class="px-3 py-1 rounded-md text-xs font-bold transition whitespace-nowrap ${activeFilter === 'transport' ? 'bg-white dark:bg-gray-700 text-blue-600 dark:text-blue-400 shadow-sm' : 'text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-white'}">Go</button>
                     </div>
                 </div>
 
@@ -913,121 +1095,60 @@
             `;
         }
 
-        function renderBudget(container) {
-            container.innerHTML = `
-                <div class="mb-6">
-                    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Budget Breakdown</h2>
-                    <p class="text-gray-600 dark:text-gray-400">Total Estimated: <span class="font-bold">¥${tripData.budget.totalEstimated.toLocaleString()}</span> (Approx S$800)</p>
-                </div>
-
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <!-- Chart Section -->
-                    <div class="bg-white dark:bg-dark-card p-6 rounded-xl card-shadow flex flex-col items-center">
-                        <h3 class="text-lg font-semibold mb-4 w-full text-left text-gray-900 dark:text-white">Spending by Category</h3>
-                        <div class="chart-container">
-                            <canvas id="budgetChart"></canvas>
-                        </div>
-                    </div>
-
-                    <!-- Details Section -->
-                    <div class="bg-white dark:bg-dark-card p-6 rounded-xl card-shadow">
-                        <h3 class="text-lg font-semibold mb-4 text-gray-900 dark:text-white">Expense Details</h3>
-                        <div class="overflow-x-auto">
-                            <table class="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
-                                <thead class="bg-gray-50 dark:bg-gray-800">
-                                    <tr>
-                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Category</th>
-                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Amount (JPY)</th>
-                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">%</th>
-                                    </tr>
-                                </thead>
-                                <tbody class="bg-white dark:bg-dark-card divide-y divide-gray-200 dark:divide-gray-700">
-                                    ${tripData.budget.breakdown.map(item => {
-                                        const pct = Math.round((item.amount / tripData.budget.totalEstimated) * 100);
-                                        return `
-                                        <tr>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white flex items-center">
-                                                <span class="h-3 w-3 rounded-full mr-2" style="background-color: ${item.color}"></span>
-                                                ${item.category}
-                                            </td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 text-right">¥${item.amount.toLocaleString()}</td>
-                                            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400 text-right">${pct}%</td>
-                                        </tr>
-                                        `;
-                                    }).join('')}
-                                     <tr class="bg-green-50 dark:bg-green-900/20">
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-green-800 dark:text-green-400">Surplus / Safety</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-green-800 dark:text-green-400 font-bold text-right">¥${tripData.budget.surplus.toLocaleString()}</td>
-                                        <td class="px-6 py-4 whitespace-nowrap text-sm text-green-800 dark:text-green-400 text-right">-</td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                        <div class="mt-4 p-4 bg-yellow-50 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-400 text-sm rounded border border-yellow-200 dark:border-yellow-900/50">
-                            <strong>Note:</strong> Budget excludes flights and accommodation. Approx ¥22,000 buffer remains for shopping or emergencies.
-                        </div>
-                    </div>
-                </div>
-            `;
-
-            // Initialize Chart
-            setTimeout(() => {
-                const ctx = document.getElementById('budgetChart').getContext('2d');
-                new Chart(ctx, {
-                    type: 'doughnut',
-                    data: {
-                        labels: tripData.budget.breakdown.map(b => b.category),
-                        datasets: [{
-                            data: tripData.budget.breakdown.map(b => b.amount),
-                            backgroundColor: tripData.budget.breakdown.map(b => b.color),
-                            borderWidth: 0
-                        }]
-                    },
-                    options: {
-                        responsive: true,
-                        maintainAspectRatio: false,
-                        plugins: {
-                            legend: { 
-                                position: 'bottom', 
-                                labels: { 
-                                    usePointStyle: true, 
-                                    padding: 20,
-                                    color: document.documentElement.classList.contains('dark') ? '#cbd5e1' : '#64748b'
-                                } 
-                            }
-                        }
-                    }
-                });
-            }, 100);
-        }
-
         function renderChecklist(container) {
+            let totalItems = 0;
+            let checkedItems = 0;
+            
+            Object.values(tripData.checklist).forEach(list => {
+                list.forEach(item => {
+                    totalItems++;
+                    if(item.done) checkedItems++;
+                });
+            });
+            
+            const progress = totalItems > 0 ? Math.round((checkedItems / totalItems) * 100) : 0;
+
             container.innerHTML = `
                 <div class="mb-6">
                     <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Pre-Trip Checklist</h2>
-                    <p class="text-gray-600 dark:text-gray-400">Essential items to secure before departure.</p>
+                    <p class="text-gray-600 dark:text-gray-400 mb-4">Your comprehensive guide for a smooth journey.</p>
+                    
+                    <div class="w-full bg-gray-200 rounded-full h-4 dark:bg-gray-700 mb-6">
+                        <div class="bg-blue-600 h-4 rounded-full transition-all duration-500" style="width: ${progress}%"></div>
+                        <p class="text-right text-xs mt-1 text-blue-600 font-bold">${progress}% Ready</p>
+                    </div>
                 </div>
 
-                <div class="bg-white dark:bg-dark-card rounded-xl card-shadow overflow-hidden">
-                    <div class="p-6 space-y-4">
-                        ${tripData.checklist.map(item => `
-                            <div class="flex items-center p-4 bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition border border-transparent hover:border-gray-200 dark:hover:border-gray-600 cursor-pointer" onclick="toggleCheck('${item.id}')">
-                                <div class="flex-shrink-0 h-6 w-6 flex items-center justify-center">
-                                    <input type="checkbox" ${item.done ? 'checked' : ''} class="h-5 w-5 text-red-600 focus:ring-red-500 border-gray-300 dark:border-gray-600 rounded pointer-events-none">
-                                </div>
-                                <div class="ml-4 flex-grow">
-                                    <span class="text-base text-gray-900 dark:text-gray-100 font-medium ${item.done ? 'line-through text-gray-400 dark:text-gray-500' : ''}">${item.text}</span>
-                                </div>
+                <div class="space-y-8">
+                    ${Object.entries(tripData.checklist).map(([key, items]) => `
+                        <div class="bg-white dark:bg-dark-card rounded-xl card-shadow overflow-hidden">
+                            <div class="bg-gray-50 dark:bg-gray-800 px-6 py-3 border-b border-gray-100 dark:border-gray-700">
+                                <h3 class="text-sm font-bold text-gray-800 dark:text-white uppercase tracking-wide capitalize">${key}</h3>
                             </div>
-                        `).join('')}
-                    </div>
-                    <div class="bg-gray-50 dark:bg-gray-800 px-6 py-6 border-t border-gray-200 dark:border-gray-700">
-                        <h3 class="text-sm font-bold text-gray-900 dark:text-white uppercase tracking-wide mb-4">Pack for February</h3>
-                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-                            <div class="bg-white dark:bg-dark-card p-3 rounded text-center text-sm text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-700">🧥 HeatTech</div>
-                            <div class="bg-white dark:bg-dark-card p-3 rounded text-center text-sm text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-700">🧣 Scarf/Gloves</div>
-                            <div class="bg-white dark:bg-dark-card p-3 rounded text-center text-sm text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-700">🔋 Power Bank</div>
-                            <div class="bg-white dark:bg-dark-card p-3 rounded text-center text-sm text-gray-600 dark:text-gray-300 border border-gray-100 dark:border-gray-700">👟 Walking Shoes</div>
+                            <div class="p-4 space-y-2">
+                                ${items.map(item => `
+                                    <div class="flex items-center p-3 hover:bg-gray-50 dark:hover:bg-gray-700 rounded-lg cursor-pointer" onclick="toggleCheck('${item.id}', '${key}')">
+                                        <input type="checkbox" ${item.done ? 'checked' : ''} class="h-5 w-5 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded pointer-events-none">
+                                        <span class="ml-3 text-sm text-gray-700 dark:text-gray-300 ${item.done ? 'line-through text-gray-400' : ''}">${item.text}</span>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>
+                    `).join('')}
+
+                    <!-- Guides Section -->
+                    <div class="mt-12">
+                        <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-6">Things to Note</h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            ${tripData.guides.map(guide => `
+                                <div class="bg-white dark:bg-dark-card p-4 rounded-xl border border-gray-200 dark:border-gray-700">
+                                    <div class="flex items-center mb-2">
+                                        <span class="text-2xl mr-3">${guide.icon}</span>
+                                        <h4 class="font-bold text-gray-900 dark:text-white">${guide.title}</h4>
+                                    </div>
+                                    <p class="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">${guide.content}</p>
+                                </div>
+                            `).join('')}
                         </div>
                     </div>
                 </div>
@@ -1036,7 +1157,6 @@
 
         function setActiveDay(index) {
             activeDayIndex = index;
-            // Reset filter when changing days to ensure content is visible
             activeFilter = 'all';
             renderItinerary(document.getElementById('main-content'));
         }
@@ -1046,12 +1166,12 @@
             renderItinerary(document.getElementById('main-content'));
         }
 
-        function toggleCheck(id) {
-            const item = tripData.checklist.find(i => i.id === id);
+        function toggleCheck(id, category) {
+            const item = tripData.checklist[category].find(i => i.id === id);
             if (item) {
                 item.done = !item.done;
                 const doneMap = {};
-                tripData.checklist.forEach(i => doneMap[i.id] = i.done);
+                Object.values(tripData.checklist).flat().forEach(i => doneMap[i.id] = i.done);
                 localStorage.setItem('tokyoChecklist', JSON.stringify(doneMap));
                 renderView(); 
             }
@@ -1060,7 +1180,6 @@
         function toggleDetails(id) {
             const content = document.getElementById(`details-${id}`);
             const chevron = document.getElementById(`chevron-${id}`);
-            
             if (content.classList.contains('details-expanded')) {
                 content.classList.remove('details-expanded');
                 chevron.classList.remove('rotate-chevron');
@@ -1070,9 +1189,7 @@
             }
         }
 
-        // Start
         init();
-
     </script>
 </body>
 </html>
